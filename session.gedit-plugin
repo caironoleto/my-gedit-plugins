@@ -1,0 +1,9 @@
+[Gedit Plugin]
+Loader=python
+Module=session
+IAge=2
+Name=Session Autosave 0.2b
+Description=Simple save current editing session on exit and via Tools menu
+Authors=Andrew Gryaznov
+Copyright=Copyright © 2008 Andrew Gryaznov (realgrandrew@gmail.com)
+Website=http://www.gedit.org

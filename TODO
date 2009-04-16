@@ -1,0 +1,185 @@
+TODO
+=====
+- generally improve layout of search dialog
+- run tests:
+  - search through / (or /usr or /usr/share) to find weird corner cases
+  - I think there's a bug somewhere when searching through /usr/share on my system (xargs displays warnings)
+  - there are also some cases where a result line displays more than one text line...
+  - check that files in /testfiles cause no errors/warnings/wrong behavior:
+  - testfiles/utf8-extract-1.bin (triggers a Pango warning): is probably this Python bug: http://bugs.python.org/issue3672
+    - maybe this could be fixed by using glib-provided UTF8 conversion functions instead of Pythons unicode() function?
+- maybe use single-click on result line to open file (instead of double click?)
+- implement searching in current file(s)
+- implement searching in project files
+  - needs some project manager to support...
+- maybe improve search directory chooser in search dialog?
+  - use some existing widget to choose directory?
+- when opening search dialog, deduce initially-display search dir in a better way
+  - it should do "the right thing" yet the user must be able to understand the decision-making way
+  - kdevelop seems to do it quite right (at least it doesn't get in my way)
+  - kate does it wrong (it uses the directory of currently-focused file, which sometimes surprises me as user)
+  - expected behavior in example cases:
+    - when starting search without ever having opened a file in that window since start: use current working dir (getcwd)
+    - after having used File Search already: use same directory as last time
+    - when starting gedit with a file on command line (like File Manager -> double click on text file): use directory of that file
+  - note: if currently-focused file couldn't be loaded correctly, then don't use it's dir as search dir (because the dir might not exist...)
+- check that activating/deactivating plugin works correctly and leaves no cruft behind
+  - this also includes on-window-destroy handlers and the like...
+- add keyboard shortcut for opening search dialog
+- publish initial version
+- maybe limit line length in result list?
+  - the result list widget fails to display very long lines (like 10000 chars) correctly anyway, at least with Gedit 2.16
+  - also, on older Gedit (2.16) apparently the whole result list is broken if a very long line is added
+- add option to ignore backup files (files ending with ~ etc):
+  - *.~
+  - .#* (emacs backup files? or from CVS?)
+  - test this with a real-life directory
+- create test plan for testing the full functionality and all corner cases with a new release
+- test searching through directories with many files, many directories, or big files or files with very long lines
+- there might be a bug (race) in cancelling: if a new grep is started after I got the child PIDs of sh and before I kill find, that new grep process is probably never killed (?!)
+- check that searching through binary files doesn't break the search output etc.
+  - note: currently, if grep detects some file as binary (maybe because it mixes two encodings?), the file is ignored...
+    - maybe there should be a way to inform the user about ignored files
+- maybe implement some further (but probably not significant) performance improvements:
+  - call updateSummary() less often (like after the loop in parseFragment())
+  - similarly, lock (freeze) TreeStore when adding several rows at once
+  - the GrepParser could probably be sped up a bit
+- display warnings/errors (like "invalid search directory" etc) to the user instead of printing to stdout...
+- add some shortcut (button, context menu...) to result panel for opening new search dialog
+- test on system with "weird" fonts (and english locale): if digits have different widths, the width of side bar in result panel might flicker...
+  - seems to be fixed on recent systems (or with recent fonts): all digits now have similar width, so the width of the "N matches" text now doesn't change so often
+- check that searching in directories with special files (devices/pipes/sockets...) is no problem
+- check that files with tabs are no problem
+- improve reading from pipe: start with small read buffer (100 bytes?), and increase it until a maximum is reached (4000 bytes?)
+  -> goal: give results quickly yet read efficiently
+- for dropdown list of recent search terms: maybe use same list as in normal Gedit search dialog?
+  - apparently gedit stores this list in /apps/gnome-settings/gedit/history-gedit2_search_for_entry
+- maybe make result list insensitive if no matches were found?
+- maybe put .glade and .py files into separate subdirectory in ~/.gnome2/gedit/plugins/ ?
+  - are there any rules for Gedit plugins?
+  - in any case, it might be useful to split the Python code into multiple files anyway
+- add more VCS directory patterns:
+  - Bazaar
+  - Mercurial
+  - RCS
+- should the result list allow find-as-you-type?
+  - yes, would be nice to have; also, it should allow searching in path names, single files names (ie. the bold part), line numbers, and lines itself... is that possible?
+  - should the find-as-you-type method in result list use "startswith" or "contains"? Is there some Gnome guideline for this?
+- add test files with different encodings (UTF8, UTF7, UTF16, ISO-8859-1)
+- search dialog: initialize search term field with some sane default (like currently-selected word)
+  - current algorithm needs some more testing in actual use cases
+- sanitize search term before starting search (make sure it contains no line breaks etc.)
+  - or should it be allowed to specify a search term with line breaks?
+- remove debug messages
+- maybe display context menu entry only if enabled in configuration (to make the menu less cluttered)?
+- evil bug: when searching inside a hidden directory, and having the "Exclude hidden files/folders" checkbox enabled, no matches are found
+  - similar problems might occur with the other Exclude options...
+- maybe add tooltips for (some) controls in search dialog, for explaining the more obscure options like "exclude VCS folders"?
+- handle invalid values in file type text field
+  - display warning message if text field is left empty
+- handle empty dropdown lists of recent dirs/texts/types better (normal Gedit search dialog displays a single, empty entry, while we display a 2-pixel-high list...)
+- idea for search dialog: at bottom of list of recent dirs, there could be a separator, followed by some "special" directories: directory of current file, maybe its parent, current working dir of Gedit, current dir of side pane, current root_dir from ProjectMarker (if not used already), maybe _all_ project roots, or the project roots of open files... This could make it easier to access these dirs, without setting them as default
+- in list of recent dirs, maybe write the last path element in bold font, to make it stand out more? Is this even possible?
+  - looks like the gtk.ComboBoxEntry doesn't recognize markup...
+- maybe somehow integrate with File Browser in side pane?
+- check with gedit-2.22.3/gedit/gedittextregion.c: there's a special char in a name, which is displayed wrong in result list
+- if list of recent file types is empty (ie. when starting to use the plugin), maybe add some example entries as recent entries (like "*.C *.c *.h"), so people can see the syntax of that field (space-separated file globs)?
+- hide radiobuttons for folder/open files etc.
+- check that the search dialog and result list are not leaked when closed
+  - maybe test this by doing lots of searches and comparing Gedit memory usage?
+- maybe add a line to result list when finished (something like "found N matches"), to show that the search has finished?
+- the result list should order files at least in such a manner that files inside a folder are listed together (not interleaved with files in subfolders)
+- it might be nice to be able to specify a single file to search in, instead of a directory
+  - the search dialog should recognize if a file path is entered, and should then disable the folder-related controls
+- if user enters an invalid directory as search dir, maybe display a little warning icon when focus leaves search dir text field?
+- result list: maybe the file name lines could get a tooltip displaying the number of matches in this file?
+- maybe the "N matches in M files" text could be improved for start of search: it could read "no matches yet" until a match is found
+- idea for result list: add a "Refine" tool to context menu, to search in the result list for all lines that contain a specific word (orRegExp)
+  - in addition, maybe the user could specify which folders/files to see (from a list or tree of folders and files)?
+- if two Gedit windows are opened, and a file search dialog is opened in each window, then the first-opened dialog will not respond to any button; but when closing the second dialog, the events queued for the first dialog will trigger as well
+- add bottom line to result list, displaying number of matches and number of matching lines
+- with Gedit 2.16, the plugin list doesn't show the search icon (it shows just some generic icon); maybe switch to some other icon (like "find") which is available in older distros?
+- when truncating long lines, it might be better to truncate in such a way that the actually matching text is preserved somehow...
+- compare highlighting color (pure yellow) with Gedit highlighting color (not pure yellow), and match our color to the Gedit one
+  - apparently this color is set in the color styles (in /usr/share/gtksourceview-2.0/styles/); so we should try to use the color from there?
+  - if we use the color from the current style, then the whole result list should be colored according to style (otherwise the highlight color might not be easily visible)
+  - Note: on Gedit 2.16, there are no styles... The highlighting color is probably hardcoded there...
+- maybe the initial result list line (the summary) should have a tooltip displaying _all_ settings for the search (flags etc.)?
+- counting of matches is broken for RegExp searching (as we can't search for POSIX REs in the result lines)
+- test that case-insensitive RegExp searching works correctly
+- in result panel, rename Cancel button to Stop (more consistent with Gnome HIG)
+- search dialog: make sure all elements have consistent border distance (esp. for Close/OK buttons vs. the other controls)
+- compare features with "ack" (http://petdance.com/ack/)
+  - the "Note that ack's --perl also checks the shebang lines of files without suffixes, which the find command will not." feature sounds nice
+  - also check the list of ignored files (core files, vim temp files...)
+- result list: maybe the file paths should be shorter, by removing the search directory from every file path?
+- result list: maybe add context menu entry for collapsing all file entries for the current path?
+  - in fact, for every path element there must be a separate menu entry to collapse all files inside that path element...
+- result lines should be better aligned (currently, lines numbers with different number of digits will foul up alignment)
+- for RegExp searches, it might be nice to have "syntax highlighting" for the RegExp in the search field
+  - this might also help to show the user that RE searching is active
+
+
+Larger work packages:
+- display somehow that search is still running
+  - maybe animated icon for result tab?
+  - or cylon-style progress bar?
+  -> need to design some user interface for this
+- implement Edit button in result panel
+- for every result panel, somehow display search parameters (search text, directory)
+  - maybe as tooltip for result tab?
+  - or as first line in result list?
+- check focus behavior of result list
+  - this means things like "where does focus go when pressing Enter or Space, or double-clicking? Where _should_ focus go?"
+- improve file type filter in search dialog
+  - need to design some user interface for this
+  - maybe get list of files suffixes (*.C, *.py...) from Gedits internal syntax highlighting database?
+- maybe sort result files? By name?
+  - adding a " | sort -z -f -b" before the xargs call basically works (no big performance hit for "normal" projects); but it should separate files and directories (currently files and directories are treated the same, and are mingled together by the sorter)
+- maybe implement "search for full words only" function to be consistent with normal Gedit search dialog?
+- maybe add a "Replace" button to result panel (above Edit) which replaces all found occurences (like Find & Replace)
+- in result list, there should probably be an easy way to get the file name for a line (if there are some hundred results in a file, it is apparently difficult to get to the file name row of these lines...)
+  - need to design some user interface for this
+- idea: maybe indent results to match file position in directory tree?
+  - need to design some user interface for this
+- translate visible text into other languages (l10n/i18n)
+- idea: it would be nice if the result list would display some "context lines" for every search result
+  - maybe as tooltip for every line?
+    - the tooltip could display 3 lines before and after the result, with syntax highlighting, and with the search term marked
+    - the tooltip could also contain the file name (which is sometimes quite difficult to see, esp. if there are lots of results for a file)
+- would it be possible to add real "text wrap" to the lines in result list? So that lines are correctly wrapped at the window border?
+- it might be useful to replace the xargs part with custom Python code (ie. spawning separate find and grep processes, and feeding the find output to grep)
+  - we could then detect when find has finished, and estimate the remaining time (or percentage) left for grep, and display that as progress bar or something
+  - the find output could be sorted efficiently (as soon as we have all files and directories in a dir, we could sort them and pass the sorted names to grep, while find keeps running)
+  - this might also be useful in the future, for searching through project files
+- improve RegExp support
+  - goals:
+    - 1. support PCRE (Perl Compatible Regular Expressions) instead of the POSIX Regular Expressions (more comfortable for the user)
+    - 2. highlight RegExp matches in result list
+  - problems:
+    - the "grep" command on Debian and Ubuntu doesn't support PCRE (no -P option); there's a "pcregrep" package available
+    - for problem 2: apparently there's no way to use POSIX RE inside Python, so even if we accept top use POSIX RE for grep, highlighting would not work
+  - possible solutions:
+    - disable RegExp support on systems where neither grep -P nor pcregrep is available
+      - the RegExp checkbox in search dialog could be made insensitive and get a tooltip that tells to look in config dialog for details; config dialog would then ask for path to compatible grep/pcregrep, and would give add'l information
+    - add a fall-back implementation which uses Pythons re module and manually searches through all the files
+      - probably lots of work
+      - probably much slower than grep
+      - Debian/Ubuntu users would experience slowdown without knowing the reason (and would just say "the plugin is just slow")
+    - find a way to translate PCRE to POSIX RE (too feed the user-entered PCRE to normal grep)
+    - to solve just problem 2: find a way to translate POSIX RE to PCRE (user would still have to enter POSIX RE, but highlighting would work)
+- fix problems related to different file content encoding:
+  - searching for an Umlaut on an UTF-8 system will not find this Umlaut in a file that is encoded in ISO-8859-1 (latin1)
+  - the result list should display found lines in correct encoding (ie. if a file is in latin1 and has Umlauts, the result lines should display the Umlauts correctly, instead of as "broken UTF8")
+    - related to this, the unicode(x, "replace") call removes too many characters when encountering a latin1-encoded Umlaut; this means that in some cases the actual match might get lost (ie. no highlighting, possibly wrong matches count)
+  - possible solutions:
+    - for every file type: detect with "file" command if encoding is not UTF8 and not ASCII; convert file in those cases (with "iconv -f 8859_1// -t UTF8//" or the like); feed converted output to grep; not sure how much this affects performance
+    - use something like "enca" to recode all input files automatically
+    - detect file types, but then recode the _search string_ for every input file (however, this would still not display the correctly-converted line in result list)
+    - maybe only do these conversions if search text contains non-ASCII characters; this could improve performance while still giving correct results, at least as long all searched files use an ASCII-based encoding (UTF8, Latin...); the optimization would probably not work for completely different encodings (like asian encodings); also this would probably not fix the problem of wrongly displayed example lines (even when searching for ASCII text, the lines might contain latin1-encoded Umlauts)
+- test with file /usr/share/festival/voices/english/kal_diphone/group/kallpc8k.group (from festvox-kallpc8k package): on some systems, when searching for "abc", the following warning appears:
+sys:1: GtkWarning: Failed to set text from markup due to error parsing markup: Error on line 1 char 64: Element 'markup' was closed, but the currently open element is 'span'
+  - maybe some unprintable characters (<32); but removing those chars leads to invalid UTF-8...
+- the displayed result lines should be shown with syntax highlighting
+- work with remote directories (GVFS/GIO)
+  - maybe using the FUSE bridge is sufficient for this?
